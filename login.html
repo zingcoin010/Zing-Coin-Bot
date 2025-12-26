@@ -99,6 +99,46 @@
     <button id="regBtn" class="btn-main" onclick="registerUser()" disabled>Login and Earn</button>
 
     <script>
+        // --- TELEGRAM INITIALIZE ---
+const tg = window.Telegram.WebApp;
+tg.ready();
+tg.expand();
+
+const tgUser = tg.initDataUnsafe?.user;
+
+// ඇප් එක ලෝඩ් වෙද්දීම මේක රන් වෙනවා
+async function checkExistingUser() {
+    // 1. LocalStorage එකේ දත්ත තියෙනවද බලනවා
+    const localData = localStorage.getItem('zingUser');
+    if (localData) {
+        window.location.href = "home.html";
+        return;
+    }
+
+    // 2. LocalStorage නැත්නම්, Telegram ID එකෙන් Firebase එකේ ඉන්නවද බලනවා
+    if (tgUser && tgUser.id) {
+        const snapshot = await db.ref('users').orderByChild('telegramId').equalTo(tgUser.id).once('value');
+        if (snapshot.exists()) {
+            // යූසර් ඉන්නවා නම් එයාගේ දත්ත අරන් සේව් කරගෙන Home එකට යනවා
+            const data = snapshot.val();
+            const userKey = Object.keys(data)[0];
+            localStorage.setItem('zingUser', JSON.stringify(data[userKey]));
+            window.location.href = "home.html";
+        }
+    }
+}
+
+// Firebase Initialize වුණාට පස්සේ මේක කෝල් කරන්න
+window.onload = () => {
+    checkExistingUser();
+    
+    // Telegram එකේ නම input එකට දානවා (අලුත් කෙනෙක් නම් විතරයි මේක පේන්නේ)
+    if (tgUser) {
+        const input = document.getElementById('usernameInput');
+        input.value = tgUser.username || tgUser.first_name || "";
+        validate();
+    }
+};
         // --- 1. YOUR FIREBASE CONFIG ---
         const firebaseConfig = {
             apiKey: "AIzaSyA5A8qm5QIvqVaGbuz8j8w-ZJ3W0p96qpQ",
