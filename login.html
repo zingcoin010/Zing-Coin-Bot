@@ -4,30 +4,69 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zing Coin - Login</title>
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
-    
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
 
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
         body { background-color: #050505; color: white; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        
         .header { text-align: center; margin-top: 20px; }
         .header h1 { font-size: 28px; font-weight: 800; color: #00d2ff; }
-        
+        .header p { font-size: 12px; color: #777; margin-top: 5px; }
+
+        /* Avatar Selection Box */
         .avatar-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin: 25px 0; width: 100%; max-width: 320px; }
-        .avatar-card { aspect-ratio: 1/1; background: #111; border-radius: 15px; display: flex; align-items: center; justify-content: center; border: 3px solid transparent; cursor: pointer; transition: 0.3s; }
-        .avatar-card i { font-size: 30px; }
-        .avatar-card.selected { border-color: #00d2ff; background: rgba(0, 210, 255, 0.1); transform: scale(1.05); }
+        .avatar-card { 
+            aspect-ratio: 1/1; 
+            background: #111; 
+            border-radius: 15px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            border: 3px solid #222; 
+            cursor: pointer; 
+            transition: 0.3s; 
+        }
+        .avatar-card i { font-size: 30px; pointer-events: none; }
+        /* Selected State */
+        .avatar-card.selected { 
+            border-color: #00d2ff !important; 
+            background: rgba(0, 210, 255, 0.1); 
+            transform: scale(1.05); 
+        }
 
         .input-box { width: 100%; max-width: 320px; padding: 15px; background: #151515; border: 2px solid #222; border-radius: 12px; color: white; font-size: 16px; margin-bottom: 10px; outline: none; }
-        .rules { width: 100%; max-width: 320px; font-size: 11px; margin-bottom: 20px; background: rgba(255,255,255,0.02); padding: 10px; border-radius: 10px; }
-        .rule { color: #555; margin-bottom: 4px; }
+        .input-box:focus { border-color: #333; }
+
+        .rules { width: 100%; max-width: 320px; font-size: 11px; margin-bottom: 20px; background: rgba(255,255,255,0.02); padding: 15px; border-radius: 12px; }
+        .rule { color: #555; margin-bottom: 5px; display: flex; align-items: center; gap: 8px; }
+        .rule i { font-size: 8px; }
         .rule.valid { color: #2ed573; }
 
-        .btn-main { width: 100%; max-width: 320px; padding: 18px; border-radius: 12px; border: none; font-weight: 800; text-transform: uppercase; cursor: pointer; background: #222; color: #555; transition: 0.3s; }
-        .btn-main.enabled { background: linear-gradient(90deg, #00d2ff, #3a7bd5); color: white; box-shadow: 0 8px 20px rgba(0, 210, 255, 0.3); }
+        .btn-main { 
+            width: 100%; 
+            max-width: 320px; 
+            padding: 18px; 
+            border-radius: 12px; 
+            border: none; 
+            font-weight: 800; 
+            text-transform: uppercase; 
+            cursor: not-allowed; 
+            background: #222; 
+            color: #555; 
+            transition: 0.3s; 
+        }
+        .btn-main.enabled { 
+            background: linear-gradient(90deg, #00d2ff, #3a7bd5); 
+            color: white; 
+            cursor: pointer; 
+            box-shadow: 0 8px 20px rgba(0, 210, 255, 0.3); 
+        }
     </style>
 </head>
 <body>
@@ -37,7 +76,7 @@
         <p>Set up your account to start earning</p>
     </div>
 
-    <div class="avatar-grid">
+    <div class="avatar-grid" id="avatarGrid">
         <div class="avatar-card" onclick="setAvatar(this, 'fa-dragon', '#ff4757')"><i class="fas fa-dragon" style="color:#ff4757"></i></div>
         <div class="avatar-card" onclick="setAvatar(this, 'fa-robot', '#2ed573')"><i class="fas fa-robot" style="color:#2ed573"></i></div>
         <div class="avatar-card" onclick="setAvatar(this, 'fa-ghost', '#1e90ff')"><i class="fas fa-ghost" style="color:#1e90ff"></i></div>
@@ -49,138 +88,125 @@
         <div class="avatar-card" onclick="setAvatar(this, 'fa-gamepad', '#ffffff')"><i class="fas fa-gamepad" style="color:#ffffff"></i></div>
     </div>
 
-    <input type="text" id="usernameInput" class="input-box" placeholder="Username (e.g. Player_07)" oninput="validate()">
+    <input type="text" id="usernameInput" class="input-box" placeholder="Username (e.g. Alex_77)" oninput="validate()">
     
     <div class="rules">
-        <div id="r1" class="rule">• Select an Avatar</div>
-        <div id="r2" class="rule">• No spaces allowed</div>
-        <div id="r3" class="rule">• Must include a number</div>
+        <div id="r1" class="rule"><i class="fas fa-circle"></i> Select an Avatar</div>
+        <div id="r2" class="rule"><i class="fas fa-circle"></i> No spaces allowed</div>
+        <div id="r3" class="rule"><i class="fas fa-circle"></i> Must include a number</div>
     </div>
 
     <button id="regBtn" class="btn-main" onclick="registerUser()" disabled>Login and Earn</button>
 
     <script>
-    // --- 1. FIREBASE CONFIG ---
-    const firebaseConfig = {
-        apiKey: "YOUR_API_KEY",
-        databaseURL: "YOUR_DATABASE_URL",
-        projectId: "YOUR_PROJECT_ID",
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+        // --- 1. YOUR FIREBASE CONFIG ---
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            databaseURL: "YOUR_DATABASE_URL",
+            projectId: "YOUR_PROJECT_ID",
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
-    // --- 2. TELEGRAM INITIALIZE ---
-    const tg = window.Telegram.WebApp;
-    tg.expand();
+        // --- 2. TELEGRAM SETTINGS ---
+        const tg = window.Telegram.WebApp;
+        tg.expand();
 
-    let selectedAvatar = null;
-    let selectedColor = null;
+        let selectedAvatar = null;
+        let selectedColor = null;
 
-    // කලින් ලොග් වෙලා නම් කෙලින්ම හෝම් එකට
-    if(localStorage.getItem('zingUser')) {
-        window.location.href = "home.html";
-    }
+        // Auto-fill from Telegram if available
+        window.onload = () => {
+            const user = tg.initDataUnsafe?.user;
+            if (user) {
+                document.getElementById('usernameInput').value = user.username || user.first_name || "";
+                validate();
+            }
+        };
 
-    // ටෙලිග්‍රෑම් එකෙන් යූසර්ගේ නම කලින්ම ලබාගැනීම
-    const tgUser = tg.initDataUnsafe?.user;
-    window.onload = () => {
-        if (tgUser) {
-            const input = document.getElementById('usernameInput');
-            input.value = tgUser.username || tgUser.first_name || "";
+        // --- 3. FUNCTIONS ---
+        function setAvatar(el, icon, color) {
+            // Remove selection from all
+            document.querySelectorAll('.avatar-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Add selection to clicked
+            el.classList.add('selected');
+            
+            selectedAvatar = icon;
+            selectedColor = color;
             validate();
         }
-    };
 
-    // --- 3. LOGIC FUNCTIONS ---
-    function setAvatar(el, icon, color) {
-        // සියලුම Avatar වල selection අයින් කරන්න
-        document.querySelectorAll('.avatar-card').forEach(c => {
-            c.classList.remove('selected');
-            c.style.borderColor = "transparent";
-        });
+        function validate() {
+            const username = document.getElementById('usernameInput').value.trim();
+            const isAvatarSelected = selectedAvatar !== null;
+            const hasNoSpaces = username.length > 0 && !/\s/.test(username);
+            const hasNumber = /\d/.test(username);
 
-        // තේරූ එකට පමණක් බෝඩර් එකක් දාන්න
-        el.classList.add('selected');
-        el.style.borderColor = "#00d2ff";
-        
-        selectedAvatar = icon;
-        selectedColor = color;
-        
-        console.log("Avatar Selected:", icon); // මේකෙන් බලන්න පුළුවන් වැඩද කියලා
-        validate();
-    }
+            // Update UI Rules
+            document.getElementById('r1').className = isAvatarSelected ? 'rule valid' : 'rule';
+            document.getElementById('r2').className = hasNoSpaces ? 'rule valid' : 'rule';
+            document.getElementById('r3').className = hasNumber ? 'rule valid' : 'rule';
 
-    function validate() {
-        const val = document.getElementById('usernameInput').value.trim();
-        const isAvatar = selectedAvatar !== null;
-        const noSpace = val.length > 0 && !/\s/.test(val);
-        const hasNum = /\d/.test(val);
-
-        // Rules UI Update
-        document.getElementById('r1').style.color = isAvatar ? '#2ed573' : '#555';
-        document.getElementById('r2').style.color = noSpace ? '#2ed573' : '#555';
-        document.getElementById('r3').style.color = hasNum ? '#2ed573' : '#555';
-
-        const btn = document.getElementById('regBtn');
-        
-        // බටන් එක enable කිරීම
-        if(isAvatar && noSpace && hasNum) {
-            btn.classList.add('enabled');
-            btn.disabled = false;
-            btn.style.background = "linear-gradient(90deg, #00d2ff, #3a7bd5)";
-            btn.style.color = "white";
-            btn.style.cursor = "pointer";
-        } else {
-            btn.classList.remove('enabled');
-            btn.disabled = true;
-            btn.style.background = "#222";
-            btn.style.color = "#555";
+            const btn = document.getElementById('regBtn');
+            if(isAvatarSelected && hasNoSpaces && hasNumber) {
+                btn.disabled = false;
+                btn.classList.add('enabled');
+            } else {
+                btn.disabled = true;
+                btn.classList.remove('enabled');
+            }
         }
-    }
 
-    async function registerUser() {
-        const name = document.getElementById('usernameInput').value.trim();
-        const btn = document.getElementById('regBtn');
-        btn.innerText = "Processing...";
-        btn.disabled = true;
+        async function registerUser() {
+            const username = document.getElementById('usernameInput').value.trim();
+            const btn = document.getElementById('regBtn');
+            btn.innerText = "Please wait...";
+            btn.disabled = true;
 
-        try {
-            // Username එක කලින් අරන් තියෙනවද බැලීම
-            const snap = await db.ref('users').orderByChild('username').equalTo(name).once('value');
-            if(snap.exists()) {
-                alert("This username is already taken!");
+            try {
+                // Check if username already exists
+                const snapshot = await db.ref('users').orderByChild('username').equalTo(username).once('value');
+                if (snapshot.exists()) {
+                    alert("This username is already taken. Try another!");
+                    btn.innerText = "Login and Earn";
+                    btn.disabled = false;
+                    return;
+                }
+
+                // Get User Count for ID
+                const countSnap = await db.ref('userCount').once('value');
+                let currentCount = countSnap.val() || 0;
+                let newId = (currentCount + 1).toString().padStart(2, '0');
+
+                const userData = {
+                    id: newId,
+                    username: username,
+                    avatar: selectedAvatar,
+                    color: selectedColor,
+                    coins: 0,
+                    tgId: tg.initDataUnsafe?.user?.id || "web-user"
+                };
+
+                // Save to Firebase
+                await db.ref('users/' + newId).set(userData);
+                await db.ref('userCount').set(currentCount + 1);
+
+                // Save locally
+                localStorage.setItem('zingUser', JSON.stringify(userData));
+                
+                // Redirect
+                window.location.href = "home.html";
+
+            } catch (error) {
+                alert("Firebase Error: " + error.message);
                 btn.innerText = "Login and Earn";
                 btn.disabled = false;
-                return;
             }
-
-            // අලුත් ID එකක් හැදීම
-            const countSnap = await db.ref('userCount').once('value');
-            let count = countSnap.val() || 0;
-            let newId = (count + 1).toString().padStart(2, '0');
-
-            const userData = {
-                id: newId,
-                username: name,
-                avatar: selectedAvatar,
-                color: selectedColor,
-                coins: 0,
-                telegramId: tgUser ? tgUser.id : "N/A"
-            };
-
-            await db.ref('users/' + newId).set(userData);
-            await db.ref('userCount').set(count + 1);
-
-            localStorage.setItem('zingUser', JSON.stringify(userData));
-            window.location.href = "home.html";
-
-        } catch (error) {
-            console.error(error);
-            alert("Firebase Error: " + error.message);
-            btn.innerText = "Login and Earn";
-            btn.disabled = false;
         }
-    }
-</script>
+    </script>
 </body>
 </html>
