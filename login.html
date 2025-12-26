@@ -60,91 +60,127 @@
     <button id="regBtn" class="btn-main" onclick="registerUser()" disabled>Login and Earn</button>
 
     <script>
-         // Telegram WebApp එක Initialize කිරීම
-const tg = window.Telegram.WebApp;
-tg.expand(); // App එක full screen කරන්න
+    // --- 1. FIREBASE CONFIG ---
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        databaseURL: "YOUR_DATABASE_URL",
+        projectId: "YOUR_PROJECT_ID",
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-// Telegram එකෙන් ලැබෙන යූසර්ගේ දත්ත
-const user = tg.initDataUnsafe?.user;
+    // --- 2. TELEGRAM INITIALIZE ---
+    const tg = window.Telegram.WebApp;
+    tg.expand();
 
-if (user) {
-    // යූසර්ගේ නම auto fill කිරීම
-    document.getElementById('usernameInput').value = user.username || user.first_name;
-    
-    // Telegram ID එක අපි පාවිච්චි කරනවා
-    console.log("Telegram User ID:", user.id);
-}
-        // --- YOUR FIREBASE CONFIG ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyA5A8qm5QIvqVaGbuz8j8w-ZJ3W0p96qpQ",
-            databaseURL: "https://zing-coin-default-rtdb.firebaseio.com",
-            projectId: "zing-coin",
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+    let selectedAvatar = null;
+    let selectedColor = null;
 
-        let selectedAvatar = null;
-        let selectedColor = null;
+    // කලින් ලොග් වෙලා නම් කෙලින්ම හෝම් එකට
+    if(localStorage.getItem('zingUser')) {
+        window.location.href = "home.html";
+    }
 
-        // දැනටමත් ලොග් වෙලා නම් කෙලින්ම හෝම් එකට
-        if(localStorage.getItem('zingUser')) {
-            window.location.href = "home.html";
-        }
-
-        function setAvatar(el, icon, color) {
-            document.querySelectorAll('.avatar-card').forEach(c => c.classList.remove('selected'));
-            el.classList.add('selected');
-            selectedAvatar = icon;
-            selectedColor = color;
+    // ටෙලිග්‍රෑම් එකෙන් යූසර්ගේ නම කලින්ම ලබාගැනීම
+    const tgUser = tg.initDataUnsafe?.user;
+    window.onload = () => {
+        if (tgUser) {
+            const input = document.getElementById('usernameInput');
+            input.value = tgUser.username || tgUser.first_name || "";
             validate();
         }
+    };
 
-        function validate() {
-            const val = document.getElementById('usernameInput').value;
-            const isAvatar = selectedAvatar !== null;
-            const noSpace = val.length > 0 && !/\s/.test(val);
-            const hasNum = /\d/.test(val);
+    // --- 3. LOGIC FUNCTIONS ---
+    function setAvatar(el, icon, color) {
+        // සියලුම Avatar වල selection අයින් කරන්න
+        document.querySelectorAll('.avatar-card').forEach(c => {
+            c.classList.remove('selected');
+            c.style.borderColor = "transparent";
+        });
 
-            document.getElementById('r1').className = isAvatar ? 'rule valid' : 'rule';
-            document.getElementById('r2').className = noSpace ? 'rule valid' : 'rule';
-            document.getElementById('r3').className = hasNum ? 'rule valid' : 'rule';
+        // තේරූ එකට පමණක් බෝඩර් එකක් දාන්න
+        el.classList.add('selected');
+        el.style.borderColor = "#00d2ff";
+        
+        selectedAvatar = icon;
+        selectedColor = color;
+        
+        console.log("Avatar Selected:", icon); // මේකෙන් බලන්න පුළුවන් වැඩද කියලා
+        validate();
+    }
 
-            const btn = document.getElementById('regBtn');
-            if(isAvatar && noSpace && hasNum) {
-                btn.classList.add('enabled');
-                btn.disabled = false;
-            } else {
-                btn.classList.remove('enabled');
-                btn.disabled = true;
-            }
+    function validate() {
+        const val = document.getElementById('usernameInput').value.trim();
+        const isAvatar = selectedAvatar !== null;
+        const noSpace = val.length > 0 && !/\s/.test(val);
+        const hasNum = /\d/.test(val);
+
+        // Rules UI Update
+        document.getElementById('r1').style.color = isAvatar ? '#2ed573' : '#555';
+        document.getElementById('r2').style.color = noSpace ? '#2ed573' : '#555';
+        document.getElementById('r3').style.color = hasNum ? '#2ed573' : '#555';
+
+        const btn = document.getElementById('regBtn');
+        
+        // බටන් එක enable කිරීම
+        if(isAvatar && noSpace && hasNum) {
+            btn.classList.add('enabled');
+            btn.disabled = false;
+            btn.style.background = "linear-gradient(90deg, #00d2ff, #3a7bd5)";
+            btn.style.color = "white";
+            btn.style.cursor = "pointer";
+        } else {
+            btn.classList.remove('enabled');
+            btn.disabled = true;
+            btn.style.background = "#222";
+            btn.style.color = "#555";
         }
-// ටෙලිග්‍රෑම් එකෙන් නම ගන්නවා
-const tgUser = tg.initDataUnsafe?.user;
-if (tgUser) {
-    const input = document.getElementById('usernameInput');
-    input.value = tgUser.username || tgUser.first_name;
-    validate(); // බටන් එක එබෙන්න නම් මේක රන් වෙන්න ඕනේ
-}
-        async function registerUser() {
-            const name = document.getElementById('usernameInput').value;
-            
-            // Username Unique පරීක්ෂාව
-            const snap = await db.ref('users').orderByChild('username').equalTo(name).once('value');
-            if(snap.exists()) return alert("Username already taken!");
+    }
 
-            // ID එක පිළිවෙලට ලබා ගැනීම (01, 02...)
+    async function registerUser() {
+        const name = document.getElementById('usernameInput').value.trim();
+        const btn = document.getElementById('regBtn');
+        btn.innerText = "Processing...";
+        btn.disabled = true;
+
+        try {
+            // Username එක කලින් අරන් තියෙනවද බැලීම
+            const snap = await db.ref('users').orderByChild('username').equalTo(name).once('value');
+            if(snap.exists()) {
+                alert("This username is already taken!");
+                btn.innerText = "Login and Earn";
+                btn.disabled = false;
+                return;
+            }
+
+            // අලුත් ID එකක් හැදීම
             const countSnap = await db.ref('userCount').once('value');
             let count = countSnap.val() || 0;
             let newId = (count + 1).toString().padStart(2, '0');
 
-            const userData = { id: newId, username: name, avatar: selectedAvatar, color: selectedColor, coins: 0 };
-            
+            const userData = {
+                id: newId,
+                username: name,
+                avatar: selectedAvatar,
+                color: selectedColor,
+                coins: 0,
+                telegramId: tgUser ? tgUser.id : "N/A"
+            };
+
             await db.ref('users/' + newId).set(userData);
             await db.ref('userCount').set(count + 1);
 
             localStorage.setItem('zingUser', JSON.stringify(userData));
-            window.location.href = "home.html"; // Home එකට යෑම
+            window.location.href = "home.html";
+
+        } catch (error) {
+            console.error(error);
+            alert("Firebase Error: " + error.message);
+            btn.innerText = "Login and Earn";
+            btn.disabled = false;
         }
-    </script>
+    }
+</script>
 </body>
 </html>
