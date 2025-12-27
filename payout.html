@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zing Coin - Payout</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background-color: #050505; color: white; min-height: 100vh; padding: 20px; padding-bottom: 100px; }
+
+        .balance-card {
+            background: linear-gradient(135deg, #1e90ff, #00d2ff);
+            padding: 30px;
+            border-radius: 25px;
+            text-align: center;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0, 210, 255, 0.2);
+        }
+        .balance-card p { font-size: 12px; text-transform: uppercase; opacity: 0.8; letter-spacing: 1px; }
+        .balance-card h2 { font-size: 36px; font-weight: 800; margin-top: 5px; }
+
+        .section-title { font-size: 16px; font-weight: 600; margin-bottom: 15px; color: #777; }
+
+        /* Payout Options */
+        .payout-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
+        .payout-card {
+            background: #111;
+            padding: 20px;
+            border-radius: 20px;
+            border: 1px solid #222;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .payout-card:hover { border-color: #00d2ff; background: #151515; }
+        .payout-card i { font-size: 24px; color: #ffd700; margin-bottom: 10px; }
+        .payout-card h4 { font-size: 13px; }
+        .payout-card p { font-size: 10px; color: #555; margin-top: 4px; }
+
+        /* Request Form */
+        #withdrawForm {
+            background: #111;
+            padding: 20px;
+            border-radius: 20px;
+            border: 1px solid #222;
+            display: none; /* පස්සේ පෙන්වීමට */
+        }
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; font-size: 11px; color: #555; margin-bottom: 5px; }
+        .input-group input { width: 100%; padding: 12px; background: #050505; border: 1px solid #333; border-radius: 10px; color: white; outline: none; }
+        
+        .btn-withdraw {
+            width: 100%;
+            padding: 15px;
+            background: #00d2ff;
+            color: black;
+            border: none;
+            border-radius: 12px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        /* Bottom Nav */
+        .footer { position: fixed; bottom: 0; left: 0; width: 100%; display: flex; justify-content: space-around; padding: 18px; background: #0a0a0a; border-top: 1px solid #1a1a1a; border-radius: 20px 20px 0 0; }
+        .nav-item { color: #444; font-size: 11px; text-align: center; text-decoration: none; font-weight: 700; display: flex; flex-direction: column; gap: 5px; }
+        .nav-item.active { color: #00d2ff; }
+        .nav-item i { font-size: 22px; }
+    </style>
+</head>
+<body>
+
+    <div class="balance-card">
+        <p>Available Balance</p>
+        <h2 id="totalCoins">0</h2>
+        <p style="margin-top: 5px; font-size: 10px;">≈ $<span id="usdValue">0.00</span> USD</p>
+    </div>
+
+    <h3 class="section-title">Withdrawal Methods</h3>
+    <div class="payout-grid">
+        <div class="payout-card" onclick="showForm('Mobile Recharge')">
+            <i class="fas fa-mobile-screen"></i>
+            <h4>Recharge</h4>
+            <p>Min: 5,000</p>
+        </div>
+        <div class="payout-card" onclick="showForm('Crypto (USDT)')">
+            <i class="fab fa-bitcoin"></i>
+            <h4>USDT</h4>
+            <p>Min: 50,000</p>
+        </div>
+    </div>
+
+    <div id="withdrawForm">
+        <h4 id="formTitle" style="margin-bottom: 15px; color: #00d2ff;">Withdrawal</h4>
+        <div class="input-group">
+            <label>Amount to Withdraw</label>
+            <input type="number" id="withdrawAmount" placeholder="Enter coins">
+        </div>
+        <div class="input-group">
+            <label id="addressLabel">Phone Number / Wallet Address</label>
+            <input type="text" id="withdrawAddress" placeholder="Details...">
+        </div>
+        <button class="btn-withdraw" onclick="submitRequest()">Submit Request</button>
+    </div>
+
+    <div class="footer">
+        <a href="home.html" class="nav-item"><i class="fas fa-gamepad"></i><span>Home</span></a>
+        <a href="rank.html" class="nav-item"><i class="fas fa-trophy"></i><span>Rank</span></a>
+        <a href="friends.html" class="nav-item"><i class="fas fa-user-group"></i><span>Friends</span></a>
+        <a href="payout.html" class="nav-item active"><i class="fas fa-wallet"></i><span>Payout</span></a>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyA5A8qm5QIvqVaGbuz8j8w-ZJ3W0p96qpQ",
+            databaseURL: "https://zing-coin-default-rtdb.firebaseio.com",
+            projectId: "zing-coin",
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let currentUser = JSON.parse(localStorage.getItem('zingUser'));
+        let selectedMethod = "";
+
+        function loadBalance() {
+            if(!currentUser) return;
+            db.ref('users/' + currentUser.id + '/coins').on('value', (snap) => {
+                const coins = snap.val() || 0;
+                document.getElementById('totalCoins').innerText = coins.toLocaleString();
+                // උදාහරණයක් විදියට 1000 Coins = $0.10 ලෙස
+                document.getElementById('usdValue').innerText = (coins / 100000).toFixed(2);
+            });
+        }
+
+        function showForm(method) {
+            selectedMethod = method;
+            document.getElementById('formTitle').innerText = method + " Withdrawal";
+            document.getElementById('withdrawForm').style.display = 'block';
+            window.scrollTo(0, document.body.scrollHeight);
+        }
+
+        async function submitRequest() {
+            const amount = parseInt(document.getElementById('withdrawAmount').value);
+            const address = document.getElementById('withdrawAddress').value;
+
+            // සරල Validation
+            if(!amount || !address) return alert("Please fill all fields!");
+            
+            // කොයින් ප්‍රමාණය පරීක්ෂා කිරීම (Firebase එකෙන් කෙලින්ම ගන්න එක ආරක්ෂිතයි)
+            const snap = await db.ref('users/' + currentUser.id + '/coins').once('value');
+            const currentCoins = snap.val() || 0;
+
+            if(amount > currentCoins) return alert("Insufficient Balance!");
+            if(amount < 5000) return alert("Minimum withdrawal is 5,000 coins!");
+
+            // ඉල්ලීම Firebase එකට දැමීම
+            const requestData = {
+                userId: currentUser.id,
+                username: currentUser.username,
+                method: selectedMethod,
+                amount: amount,
+                address: address,
+                status: "Pending",
+                date: new Date().toLocaleString()
+            };
+
+            await db.ref('payoutRequests').push(requestData);
+            
+            // කොයින් ප්‍රමාණය අඩු කිරීම
+            await db.ref('users/' + currentUser.id + '/coins').set(currentCoins - amount);
+
+            alert("Request Sent! It will be processed within 24 hours.");
+            document.getElementById('withdrawForm').style.display = 'none';
+        }
+
+        window.onload = loadBalance;
+    </script>
+</body>
+</html>
