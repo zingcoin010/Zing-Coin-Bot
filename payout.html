@@ -136,6 +136,20 @@
             });
         }
 
+        // මේක submitRequest() function එකේ උඩින්ම දාන්න
+function submitRequest() {
+    // Payout lock කර තිබේදැයි පරීක්ෂා කිරීම
+    const isPayoutEnabled = false; // <--- ඔයාට payouts ඕනෙ වුණාම මේක true කරන්න
+
+    if (!isPayoutEnabled) {
+        alert("🔒 Payouts are currently locked! We will enable withdrawals soon. Stay tuned!");
+        return; // මෙතනින් එහාට කෝඩ් එක වැඩ කරන්නේ නැහැ
+    }
+
+    // ඉතිරි කෝඩ් එක (දැනට තියෙන එකමයි)
+    const amount = parseInt(document.getElementById('withdrawAmount').value);
+    // ... ඉතිරි ටික ...
+}
         function showForm(method) {
             selectedMethod = method;
             document.getElementById('formTitle').innerText = method + " Withdrawal";
