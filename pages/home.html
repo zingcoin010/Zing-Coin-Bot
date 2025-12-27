@@ -3,27 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zing - Home</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Zing Coin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css">
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
     <script src="../js/config.js"></script>
-    <style>
-        /* CSS මෙතනට දාන්න */
-        body { background: #000; color: white; text-align: center; font-family: sans-serif; }
-        .balance { font-size: 40px; margin: 50px 0; color: #00d2ff; }
-        .btn { background: #00d2ff; padding: 15px 40px; border-radius: 30px; border: none; font-weight: bold; }
-    </style>
 </head>
 <body>
-    <p>Balance</p>
-    <div class="balance" id="coinDisplay">0</div>
-    <button class="btn" onclick="location.href='play-menu.html'">PLAY NOW</button>
+    <div class="header-card">
+        <p style="font-size: 14px; opacity: 0.9;">Total Balance</p>
+        <h1 id="coinDisplay">0</h1>
+    </div>
+
+    <div class="container">
+        <button class="main-btn" onclick="location.href='play-menu.html'">PLAY GAMES 🎮</button>
+        
+        <div class="grid">
+            <a href="friends.html" class="card">
+                <div class="icon-circle"><img src="https://cdn-icons-png.flaticon.com/512/1256/1256650.png"></div>
+                <p>Invite</p>
+            </a>
+            <a href="payout.html" class="card">
+                <div class="icon-circle"><img src="https://cdn-icons-png.flaticon.com/512/2489/2489756.png"></div>
+                <p>Wallet</p>
+            </a>
+        </div>
+    </div>
 
     <script>
         if (user) {
             db.ref('users/' + user.id + '/coins').on('value', snap => {
-                document.getElementById('coinDisplay').innerText = snap.val() || 0;
+                document.getElementById('coinDisplay').innerText = (snap.val() || 0).toLocaleString();
             });
         }
     </script>
