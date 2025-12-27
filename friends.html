@@ -236,6 +236,17 @@ window.onload = () => {
         }
 
         window.onload = initFriends;
+        // මේක script එක ඇතුළේ දාන්න
+const user = JSON.parse(localStorage.getItem('zingUser'));
+const botUsername = "ZingCoin_Bot"; // <--- මෙතනට ඔයාගේ බොට්ගේ නම අනිවාර්යයෙන්ම දාන්න
+
+if (user && user.id) {
+    const refLink = `https://t.me/${botUsername}?start=${user.id}`;
+    // HTML එකේ id="referralLink" කියලා තියෙන තැනට ලින්ක් එක දානවා
+    document.getElementById('referralLink').innerText = refLink;
+} else {
+    document.getElementById('referralLink').innerText = "Link generation failed!";
+}
     </script>
 </body>
 </html>
