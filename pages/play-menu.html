@@ -3,32 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zing - Play Menu</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+    <link rel="stylesheet" href="../css/style.css">
     <script src="../js/config.js"></script>
-    <style>
-        body { background: #050505; color: white; font-family: sans-serif; text-align: center; padding: 20px; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 30px; }
-        .card { background: #111; padding: 20px; border-radius: 20px; text-decoration: none; color: white; border: 1px solid #222; transition: 0.3s; }
-        .card:active { transform: scale(0.95); }
-        .icon-circle { width: 75px; height: 75px; background: #1a1a1a; border-radius: 50%; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 2px solid #00d2ff; }
-        .icon-circle img { width: 100%; height: 100%; object-fit: cover; }
-        h3 { font-size: 14px; }
-    </style>
 </head>
 <body>
-    <h2>GAMES & TASKS</h2>
-    <div class="grid">
-        <a href="spin-wheel.html" class="card">
-            <div class="icon-circle"><img src="https://i.ibb.co/31M6zY0/spin-wheel.png"></div>
-            <h3>Lucky Spin</h3>
-        </a>
-        <a href="daily-tasks.html" class="card">
-            <div class="icon-circle"><i class="fas fa-check-circle" style="font-size:30px; color:#2ed573"></i></div>
-            <h3>Tasks</h3>
-        </a>
+    <div class="header-card" style="padding: 20px;">
+        <h2>Select Activity</h2>
+    </div>
+
+    <div class="container">
+        <div class="grid">
+            <a href="spin-wheel.html" class="card">
+                <div class="icon-circle"><img src="https://i.ibb.co/31M6zY0/spin-wheel.png"></div>
+                <p>Lucky Spin</p>
+            </a>
+            <a href="daily-tasks.html" class="card">
+                <div class="icon-circle"><img src="https://cdn-icons-png.flaticon.com/512/4345/4345573.png"></div>
+                <p>Tasks</p>
+            </a>
+        </div>
+        <button class="main-btn" style="margin-top: 30px; background: #333; color: white;" onclick="history.back()">GO BACK</button>
     </div>
 </body>
 </html>
