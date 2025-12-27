@@ -138,11 +138,23 @@
                 btn.disabled = true;
             }
         }
+// යූසර් පළමු වරට ලියාපදිංචි වන විට (Register)
+function registerUser(userId, username) {
+    const newUser = {
+        id: userId,
+        username: username,
+        coins: 1000, // <--- මෙන්න මෙතනට 1000 එකතු කරන්න
+        joinedDate: new Date().toISOString()
+    };
 
-        async function registerUser() {
-            const name = document.getElementById('usernameInput').value.trim();
-            const tgUser = tg.initDataUnsafe?.user;
+    // Firebase එකට දත්ත යැවීම
+    db.ref('users/' + userId).set(newUser).then(() => {
+        localStorage.setItem('zingUser', JSON.stringify(newUser));
+        window.location.href = 'home.html';
+    });
+}
 
+    
             try {
                 // නම පාවිච්චි කරලා තියෙනවද බලන්න
                 const snap = await db.ref('users').orderByChild('username').equalTo(name).once('value');
