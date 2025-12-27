@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invite Friends</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+    <script src="../js/config.js"></script>
+    <style>
+        body { background: #000; color: white; font-family: sans-serif; text-align: center; padding: 20px; }
+        .ref-box { background: #111; padding: 20px; border-radius: 15px; margin-top: 20px; border: 1px dashed #00d2ff; }
+        #refLink { color: #00d2ff; word-break: break-all; font-size: 14px; }
+        .copy-btn { background: #00d2ff; border: none; padding: 10px 20px; border-radius: 10px; margin-top: 10px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h2>Invite Friends</h2>
+    <p>Earn 5,000 Coins for each friend!</p>
+    <div class="ref-box">
+        <p id="refLink">Generating link...</p>
+        <button class="copy-btn" onclick="copyRef()">Copy Link</button>
+    </div>
+
+    <script>
+        const botUsername = "ZingCoin_Bot"; // <--- ඔයාගේ බොට් Username එක දාන්න
+        
+        if(user) {
+            const link = `https://t.me/${botUsername}?start=${user.id}`;
+            document.getElementById('refLink').innerText = link;
+        }
+
+        function copyRef() {
+            const text = document.getElementById('refLink').innerText;
+            navigator.clipboard.writeText(text);
+            alert("Link Copied!");
+        }
+    </script>
+</body>
+</html>
