@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Zing Coin - Wallet</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+    <script src="../firebase data/config.js"></script>
+
+    <style>
+        .payout-card { background: #1a1a1a; border-radius: 20px; padding: 20px; margin-bottom: 20px; border: 1px solid #333; opacity: 0.7; }
+        .method-info { display: flex; align-items: center; justify-content: space-between; }
+        .method-details h4 { color: #fff; margin-bottom: 5px; }
+        
+        /* Coming Soon Banner */
+        .coming-soon-box {
+            background: rgba(255, 159, 67, 0.1);
+            border: 1px solid #ff9f43;
+            color: #ff9f43;
+            padding: 20px;
+            border-radius: 20px;
+            text-align: center;
+            margin-top: 30px;
+        }
+        .coming-soon-box i { font-size: 30px; margin-bottom: 10px; }
+
+        .rate-card {
+            background: rgba(0, 210, 255, 0.1);
+            padding: 15px;
+            border-radius: 15px;
+            margin: 20px 0;
+            border: 1px dashed var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-section">
+        <i class="fas fa-wallet" style="font-size: 40px; color: var(--primary-color); margin-bottom: 10px;"></i>
+        <p class="balance-label">Current Balance</p>
+        <h1 class="balance-amount" id="myBalance">0</h1>
+        
+        <div class="rate-card">
+            <p style="font-size: 13px; color: var(--primary-color); font-weight: 600;">
+                <i class="fas fa-exchange-alt"></i> Rate: 100,000 Coins = Rs. 1.00
+            </p>
+        </div>
+    </div>
+
+    <div class="container" style="padding: 20px;">
+        <h3 style="text-align: left;">Available Methods</h3>
+        <br>
+
+        <div class="payout-card">
+            <div class="method-info">
+                <div style="display: flex; align-items: center;">
+                    <img src="https://cdn-icons-png.flaticon.com/512/14446/14446219.png" width="40" style="margin-right: 15px;">
+                    <div class="method-details">
+                        <h4>Binance (USDT)</h4>
+                        <p style="font-size: 11px; color: #888;">Min Payout: 100,000 Coins</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="payout-card">
+            <div class="method-info">
+                <div style="display: flex; align-items: center;">
+                    <img src="https://cdn-icons-png.flaticon.com/512/10149/10149458.png" width="40" style="margin-right: 15px;">
+                    <div class="method-details">
+                        <h4>EasyCash / mCash</h4>
+                        <p style="font-size: 11px; color: #888;">Min Payout: 50,000 Coins</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="coming-soon-box">
+            <i class="fas fa-clock"></i>
+            <h3>Withdrawals Coming Soon!</h3>
+            <p style="font-size: 12px; margin-top: 5px;">We are currently verifying our payout systems. Stay tuned!</p>
+        </div>
+    </div>
+
+    <div class="footer-nav">
+        <a href="home.html" class="nav-item"><i class="fas fa-home"></i><span>Home</span></a>
+        <a href="friends.html" class="nav-item"><i class="fas fa-user-friends"></i><span>Friends</span></a>
+        <a href="rank.html" class="nav-item"><i class="fas fa-trophy"></i><span>Rank</span></a>
+        <a href="payout.html" class="nav-item active"><i class="fas fa-wallet"></i><span>Wallet</span></a>
+    </div>
+
+    <script>
+        window.onload = function() {
+            const savedUser = JSON.parse(localStorage.getItem('zingUser'));
+            if (savedUser) {
+                db.ref('users/' + savedUser.id + '/coins').on('value', snap => {
+                    const bal = snap.val() || 0;
+                    document.getElementById('myBalance').innerText = bal.toLocaleString();
+                });
+            }
+        };
+    </script>
+</body>
+  </html>
