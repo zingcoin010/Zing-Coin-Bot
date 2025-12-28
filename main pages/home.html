@@ -18,7 +18,7 @@
 
     <div class="header-section">
         <div class="user-profile" style="margin-bottom: 20px;">
-            <img id="userAvatar" src="" alt="Avatar" style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--primary-color); padding: 3px;">
+            <img id="userAvatar" src="https://cdn-icons-png.flaticon.com/512/924/924874.png" alt="Avatar" style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--primary-color); padding: 3px;">
             <h3 id="userName" style="margin-top: 10px; font-weight: 600;">Loading...</h3>
         </div>
         
@@ -44,57 +44,53 @@
     </div>
 
     <div class="footer-nav">
-        <a href="home.html" class="nav-item active">
-            <i class="fas fa-home"></i>
-            <span>Home</span>
-        </a>
-        <a href="play-menu.html" class="nav-item">
-            <i class="fas fa-gamepad"></i>
-            <span>Games</span>
-        </a>
-        <a href="friends.html" class="nav-item">
-            <i class="fas fa-user-friends"></i>
-            <span>Friends</span>
-        </a>
-        <a href="rank.html" class="nav-item">
-            <i class="fas fa-trophy"></i>
-            <span>Rank</span>
-        </a>
-        <a href="payout.html" class="nav-item">
-            <i class="fas fa-wallet"></i>
-            <span>Wallet</span>
-        </a>
+        <a href="home.html" class="nav-item active"><i class="fas fa-home"></i><span>Home</span></a>
+        <a href="play-menu.html" class="nav-item"><i class="fas fa-gamepad"></i><span>Games</span></a>
+        <a href="friends.html" class="nav-item"><i class="fas fa-user-friends"></i><span>Friends</span></a>
+        <a href="rank.html" class="nav-item"><i class="fas fa-trophy"></i><span>Rank</span></a>
+        <a href="payout.html" class="nav-item"><i class="fas fa-wallet"></i><span>Wallet</span></a>
     </div>
 
     <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const user = getLocalUser(); // config.js එකේ අලුත් function එක
-        console.log("Local User Data:", user); // මේකෙන් browser එකේ data තියෙනවද බලන්න පුළුවන්
+        function loadDashboard() {
+            // localStorage එකෙන් කෙලින්ම දත්ත ගන්නවා (config එකේ localUser එනකම් ඉන්නේ නැතුව)
+            const savedUser = JSON.parse(localStorage.getItem('zingUser'));
 
-        if (user && user.id) {
-            // පේජ් එකේ තියෙන තැන් වලට දත්ත දාන්න
-            document.getElementById('userName').innerText = user.username || "Zing User";
-            document.getElementById('userAvatar').src = user.avatar || "https://cdn-icons-png.flaticon.com/512/924/924874.png";
-
-            // Firebase එකෙන් ලයිව් දත්ත ගන්න
-            db.ref('users/' + user.id).on('value', (snapshot) => {
-                if (snapshot.exists()) {
-                    const data = snapshot.val();
-                    console.log("Firebase Data:", data);
-                    document.getElementById('coinBalance').innerText = (data.coins || 0).toLocaleString();
-                    
-                    if(data.referrals) {
-                        document.getElementById('friendCount').innerText = Object.keys(data.referrals).length;
-                    }
-                } else {
-                    console.log("No data found in Firebase for this ID");
+            if (savedUser && savedUser.id) {
+                // UI එක මුලින්ම සකසනවා
+                document.getElementById('userName').innerText = savedUser.username || "Zing User";
+                if(savedUser.avatar) {
+                    document.getElementById('userAvatar').src = savedUser.avatar;
                 }
-            });
-        } else {
-            console.log("No user found in localStorage. Redirecting...");
-            // window.location.href = "../index.html"; // දැනට මේක off කරලා බලන්න දත්ත එනකම්
+
+                // Firebase එකෙන් ලයිව් බැලන්ස් එක සහ අලුත් දත්ත ගන්නවා
+                db.ref('users/' + savedUser.id).on('value', (snapshot) => {
+                    if (snapshot.exists()) {
+                        const firebaseData = snapshot.val();
+                        
+                        // Balance එක update කිරීම
+                        document.getElementById('coinBalance').innerText = (firebaseData.coins || 0).toLocaleString();
+                        
+                        // Username හෝ Avatar එක Firebase එකේ වෙනස් වෙලා නම් ඒකත් update කරනවා
+                        document.getElementById('userName').innerText = firebaseData.username || savedUser.username;
+                        if(firebaseData.avatar) {
+                            document.getElementById('userAvatar').src = firebaseData.avatar;
+                        }
+
+                        // රෙෆරල් ගණන
+                        if(firebaseData.referrals) {
+                            document.getElementById('friendCount').innerText = Object.keys(firebaseData.referrals).length;
+                        }
+                    }
+                });
+            } else {
+                // කිසිම දත්තයක් නැත්නම් ආපහු login එකට
+                window.location.href = "../index.html";
+            }
         }
-    });
-</script>
+
+        // පේජ් එක සම්පූර්ණයෙන්ම load වුණාම function එක run කරනවා
+        window.onload = loadDashboard;
+    </script>
 </body>
-              </html>
+</html>
