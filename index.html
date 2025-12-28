@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Zing Coin - Join Now</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background: #050505; color: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        
+        #splash-screen { text-align: center; } /* මුලින්ම පේන ලෝඩින් එක */
+
+        .signup-container { width: 90%; max-width: 400px; text-align: center; background: #111; padding: 30px; border-radius: 30px; border: 1px solid #222; display: none; }
+        
+        h1 { font-size: 26px; margin-bottom: 20px; color: #00d2ff; font-weight: 800; }
+
+        .user-preview { background: #1a1a1a; padding: 15px; border-radius: 20px; margin-bottom: 20px; border: 1px solid #333; }
+        .user-preview p { font-size: 12px; color: #888; text-transform: uppercase; }
+        .user-preview h3 { font-size: 18px; color: #fff; }
+
+        .avatar-label { font-size: 14px; margin-bottom: 10px; color: #bbb; display: block; }
+        .avatar-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 25px; }
+        .avatar-item { width: 100%; aspect-ratio: 1/1; border-radius: 50%; border: 3px solid transparent; cursor: pointer; transition: 0.3s; overflow: hidden; }
+        .avatar-item img { width: 100%; height: 100%; object-fit: cover; }
+        .avatar-item.selected { border-color: #00d2ff; transform: scale(1.1); box-shadow: 0 0 15px rgba(0, 210, 255, 0.4); }
+
+        .rules-card { text-align: left; background: rgba(255,255,255,0.03); padding: 15px; border-radius: 15px; margin-bottom: 25px; font-size: 12px; line-height: 1.6; color: #aaa; }
+        .rules-card b { color: #00d2ff; display: block; margin-bottom: 5px; }
+
+        .btn-signup { width: 100%; background: #00d2ff; color: #000; border: none; padding: 16px; border-radius: 15px; font-size: 18px; font-weight: 800; cursor: pointer; transition: 0.3s; }
+        .btn-signup:active { transform: scale(0.95); }
+
+        .loader { border: 3px solid #333; border-top: 3px solid #00d2ff; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto 10px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div id="splash-screen">
+        <div class="loader"></div>
+        <p>Checking account...</p>
+    </div>
+
+    <div class="signup-container" id="signup-form">
+        <h1>Sign Up Now</h1>
+        
+        <div class="user-preview">
+            <p>Welcome to Zing Coin</p>
+            <h3 id="tg-name">Telegram User</h3>
+        </div>
+
+        <span class="avatar-label">Select your avatar:</span>
+        <div class="avatar-grid" id="avatar-picker">
+            </div>
+
+        <div class="rules-card">
+            <b>Rules & Regulations:</b>
+            <i class="fas fa-check-circle"></i> One account per Telegram ID.<br>
+            <i class="fas fa-check-circle"></i> 1,000 Coins Welcome Bonus included.<br>
+            <i class="fas fa-check-circle"></i> Fake referrals will lead to a ban.
+        </div>
+
+        <button class="btn-signup" onclick="startJourney()">SIGN UP</button>
+    </div>
+
+    <script>
+        // --- Firebase Config (Replace with your real keys) ---
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            databaseURL: "YOUR_DATABASE_URL",
+            projectId: "YOUR_PROJECT_ID"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        const user = tg.initDataUnsafe.user;
+
+        let selectedAvatarUrl = "";
+        const avatarList = [
+            "https://cdn-icons-png.flaticon.com/512/6833/6833905.png",
+            "https://cdn-icons-png.flaticon.com/512/6833/6833881.png",
+            "https://cdn-icons-png.flaticon.com/512/6833/6833912.png",
+            "https://cdn-icons-png.flaticon.com/512/6833/6833895.png"
+        ];
+
+        window.onload = function() {
+            if (!user) {
+                document.body.innerHTML = "<h3>Please open in Telegram Bot</h3>";
+                return;
+            }
+
+            // පරණ යූසර් කෙනෙක්දැයි පරීක්ෂා කිරීම
+            db.ref('users/' + user.id).once('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    // දැනටමත් ඉන්නවා නම් කෙලින්ම Home එකට (Folder structure එකට අනුව)
+                    localStorage.setItem('zingUser', JSON.stringify(snapshot.val()));
+                    window.location.href = "main pages/home.html";
+                } else {
+                    // අලුත් කෙනෙක් නම් Sign Up පෙන්වීම
+                    showSignupForm();
+                }
+            });
+        };
+
+        function showSignupForm() {
+            document.getElementById('splash-screen').style.display = 'none';
+            document.getElementById('signup-form').style.display = 'block';
+            document.getElementById('tg-name').innerText = user.username || user.first_name;
+
+            const picker = document.getElementById('avatar-picker');
+            avatarList.forEach((url, index) => {
+                const div = document.createElement('div');
+                div.className = 'avatar-item' + (index === 0 ? ' selected' : '');
+                if(index === 0) selectedAvatarUrl = url;
+                div.innerHTML = `<img src="${url}">`;
+                div.onclick = function() {
+                    document.querySelectorAll('.avatar-item').forEach(el => el.classList.remove('selected'));
+                    div.classList.add('selected');
+                    selectedAvatarUrl = url;
+                };
+                picker.appendChild(div);
+            });
+        }
+
+        function startJourney() {
+            const userData = {
+                id: user.id,
+                username: user.username || user.first_name,
+                avatar: selectedAvatarUrl,
+                coins: 1000, // Welcome Bonus
+                level: 1,
+                joinedDate: new Date().toISOString()
+            };
+
+            db.ref('users/' + user.id).set(userData).then(() => {
+                localStorage.setItem('zingUser', JSON.stringify(userData));
+                window.location.href = "main pages/home.html";
+            });
+        }
+    </script>
+</body>
+</html>
