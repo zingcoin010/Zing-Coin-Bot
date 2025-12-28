@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Zing Coin - Friends</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+    <script src="../firebase data/config.js"></script>
+</head>
+<body>
+
+    <div class="header-section" style="padding: 30px 20px;">
+        <i class="fas fa-user-friends" style="font-size: 40px; color: var(--primary-color); margin-bottom: 10px;"></i>
+        <h2>Invite Friends</h2>
+        <p style="font-size: 13px; color: var(--text-gray); margin-top: 5px;">Earn 5,000 Zing Coins for every friend you invite!</p>
+    </div>
+
+    <div class="container" style="padding: 20px;">
+        <div class="invite-box">
+            <p style="font-size: 12px; color: var(--text-gray); margin-bottom: 10px;">Your Referral Link:</p>
+            <div id="refLink" style="background: #1a1a1a; padding: 12px; border-radius: 10px; font-size: 13px; color: var(--primary-color); word-break: break-all; border: 1px solid #333;">
+                Generating link...
+            </div>
+            <button class="btn-main" onclick="copyLink()" style="width: 100%; margin-top: 15px; padding: 12px; font-size: 15px;">
+                <i class="fas fa-copy"></i> Copy Link
+            </button>
+        </div>
+
+        <div style="text-align: left; margin-top: 30px;">
+            <h4 style="margin-bottom: 15px; padding-left: 5px;">Your Referrals (<span id="friendCount">0</span>)</h4>
+            <div id="friendsList">
+                <p style="font-size: 13px; color: #555; text-align: center; margin-top: 20px;">No friends invited yet.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-nav">
+        <a href="home.html" class="nav-item"><i class="fas fa-home"></i><span>Home</span></a>
+        <a href="friends.html" class="nav-item active"><i class="fas fa-user-friends"></i><span>Friends</span></a>
+        <a href="rank.html" class="nav-item"><i class="fas fa-trophy"></i><span>Rank</span></a>
+        <a href="payout.html" class="nav-item"><i class="fas fa-wallet"></i><span>Wallet</span></a>
+    </div>
+
+    <script>
+        const botUsername = "ZingCoin_Bot"; // <--- ඔයාගේ බොට්ගේ නම මෙතනට දාන්න
+
+        window.onload = function() {
+            const savedUser = JSON.parse(localStorage.getItem('zingUser'));
+
+            if (savedUser && savedUser.id) {
+                // ලින්ක් එක සෑදීම
+                const myLink = `https://t.me/${botUsername}?start=${savedUser.id}`;
+                document.getElementById('refLink').innerText = myLink;
+
+                // Firebase එකෙන් රෙෆරල් ලිස්ට් එක ගැනීම
+                db.ref('users/' + savedUser.id + '/referrals').on('value', (snapshot) => {
+                    const friendsContainer = document.getElementById('friendsList');
+                    const countSpan = document.getElementById('friendCount');
+                    
+                    if (snapshot.exists()) {
+                        friendsContainer.innerHTML = ""; // පරණ දත්ත මකන්න
+                        const data = snapshot.val();
+                        const friendsArray = Object.values(data);
+                        countSpan.innerText = friendsArray.length;
+
+                        friendsArray.forEach(friend => {
+                            const item = document.createElement('div');
+                            item.className = 'rank-item'; // style.css එකේ තියෙන style එකම පාවිච්චි කරනවා
+                            item.innerHTML = `
+                                <div style="display: flex; align-items: center;">
+                                    <div style="width: 35px; height: 35px; background: #222; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px; border: 1px solid var(--primary-color);">
+                                        <i class="fas fa-user" style="font-size: 14px; color: #fff;"></i>
+                                    </div>
+                                    <span>${friend.username || 'User'}</span>
+                                </div>
+                                <span style="color: var(--primary-color); font-size: 12px;">+5,000</span>
+                            `;
+                            friendsContainer.appendChild(item);
+                        });
+                    }
+                });
+            } else {
+                window.location.href = "../index.html";
+            }
+        };
+
+        function copyLink() {
+            const linkText = document.getElementById('refLink').innerText;
+            navigator.clipboard.writeText(linkText).then(() => {
+                alert("Link copied to clipboard!");
+            });
+        }
+    </script>
+</body>
+          </html>
