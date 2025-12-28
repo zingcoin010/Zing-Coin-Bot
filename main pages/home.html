@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Zing Coin - Home</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="../css/style.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+    
+    <script src="../firebase data/config.js"></script>
+</head>
+<body>
+
+    <div class="header-section">
+        <div class="user-profile" style="margin-bottom: 20px;">
+            <img id="userAvatar" src="" alt="Avatar" style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--primary-color); padding: 3px;">
+            <h3 id="userName" style="margin-top: 10px; font-weight: 600;">Loading...</h3>
+        </div>
+        
+        <p class="balance-label">Total Zing Coins</p>
+        <h1 class="balance-amount" id="coinBalance">0</h1>
+        
+        <button class="btn-main" onclick="location.href='play-menu.html'" style="margin-top: 20px;">
+            <i class="fas fa-play"></i> Play & Earn
+        </button>
+    </div>
+
+    <div class="grid-container">
+        <div class="item-card">
+            <div class="icon-box"><i class="fas fa-bolt" style="color: #ff9f43; font-size: 24px;"></i></div>
+            <p style="font-size: 12px; color: var(--text-gray);">Daily Task</p>
+            <h4 id="taskStatus">Pending</h4>
+        </div>
+        <div class="item-card">
+            <div class="icon-box"><i class="fas fa-users" style="color: #2ed573; font-size: 24px;"></i></div>
+            <p style="font-size: 12px; color: var(--text-gray);">Friends</p>
+            <h4 id="friendCount">0</h4>
+        </div>
+    </div>
+
+    <div class="footer-nav">
+        <a href="home.html" class="nav-item active">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </a>
+        <a href="play-menu.html" class="nav-item">
+            <i class="fas fa-gamepad"></i>
+            <span>Games</span>
+        </a>
+        <a href="friends.html" class="nav-item">
+            <i class="fas fa-user-friends"></i>
+            <span>Friends</span>
+        </a>
+        <a href="rank.html" class="nav-item">
+            <i class="fas fa-trophy"></i>
+            <span>Rank</span>
+        </a>
+        <a href="payout.html" class="nav-item">
+            <i class="fas fa-wallet"></i>
+            <span>Wallet</span>
+        </a>
+    </div>
+
+    <script>
+        // පේජ් එක ලෝඩ් වෙද්දී දත්ත ලබාගැනීම
+        document.addEventListener("DOMContentLoaded", function() {
+            // localStorage එකෙන් යූසර් දත්ත ලබාගැනීම (config.js එකේ localUser ලෙස ඇත)
+            if (localUser) {
+                document.getElementById('userName').innerText = localUser.username;
+                document.getElementById('userAvatar').src = localUser.avatar || "https://cdn-icons-png.flaticon.com/512/924/924874.png";
+
+                // Firebase එකෙන් Realtime Balance එක ලබාගැනීම
+                db.ref('users/' + localUser.id).on('value', (snapshot) => {
+                    if (snapshot.exists()) {
+                        const data = snapshot.val();
+                        document.getElementById('coinBalance').innerText = (data.coins || 0).toLocaleString();
+                        
+                        // යූසර්ගේ අනෙකුත් දත්ත (උදා: Friends count) මෙතනදී අප්ඩේට් කළ හැක
+                        if(data.referrals) {
+                            document.getElementById('friendCount').innerText = Object.keys(data.referrals).length;
+                        }
+                    }
+                });
+            } else {
+                // යූසර් ලොග් වෙලා නැත්නම් index එකට යවනවා
+                window.location.href = "../index.html";
+            }
+        });
+    </script>
+</body>
+              </html>
