@@ -67,30 +67,34 @@
     </div>
 
     <script>
-        // පේජ් එක ලෝඩ් වෙද්දී දත්ත ලබාගැනීම
-        document.addEventListener("DOMContentLoaded", function() {
-            // localStorage එකෙන් යූසර් දත්ත ලබාගැනීම (config.js එකේ localUser ලෙස ඇත)
-            if (localUser) {
-                document.getElementById('userName').innerText = localUser.username;
-                document.getElementById('userAvatar').src = localUser.avatar || "https://cdn-icons-png.flaticon.com/512/924/924874.png";
+    document.addEventListener("DOMContentLoaded", function() {
+        const user = getLocalUser(); // config.js එකේ අලුත් function එක
+        console.log("Local User Data:", user); // මේකෙන් browser එකේ data තියෙනවද බලන්න පුළුවන්
 
-                // Firebase එකෙන් Realtime Balance එක ලබාගැනීම
-                db.ref('users/' + localUser.id).on('value', (snapshot) => {
-                    if (snapshot.exists()) {
-                        const data = snapshot.val();
-                        document.getElementById('coinBalance').innerText = (data.coins || 0).toLocaleString();
-                        
-                        // යූසර්ගේ අනෙකුත් දත්ත (උදා: Friends count) මෙතනදී අප්ඩේට් කළ හැක
-                        if(data.referrals) {
-                            document.getElementById('friendCount').innerText = Object.keys(data.referrals).length;
-                        }
+        if (user && user.id) {
+            // පේජ් එකේ තියෙන තැන් වලට දත්ත දාන්න
+            document.getElementById('userName').innerText = user.username || "Zing User";
+            document.getElementById('userAvatar').src = user.avatar || "https://cdn-icons-png.flaticon.com/512/924/924874.png";
+
+            // Firebase එකෙන් ලයිව් දත්ත ගන්න
+            db.ref('users/' + user.id).on('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    console.log("Firebase Data:", data);
+                    document.getElementById('coinBalance').innerText = (data.coins || 0).toLocaleString();
+                    
+                    if(data.referrals) {
+                        document.getElementById('friendCount').innerText = Object.keys(data.referrals).length;
                     }
-                });
-            } else {
-                // යූසර් ලොග් වෙලා නැත්නම් index එකට යවනවා
-                window.location.href = "../index.html";
-            }
-        });
-    </script>
+                } else {
+                    console.log("No data found in Firebase for this ID");
+                }
+            });
+        } else {
+            console.log("No user found in localStorage. Redirecting...");
+            // window.location.href = "../index.html"; // දැනට මේක off කරලා බලන්න දත්ත එනකම්
+        }
+    });
+</script>
 </body>
               </html>
